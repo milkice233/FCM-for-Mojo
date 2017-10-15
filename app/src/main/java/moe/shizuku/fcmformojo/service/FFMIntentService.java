@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -130,21 +131,27 @@ public class FFMIntentService extends IntentService {
         FFMService
                 .restart()
                 .blockingGet();
-
-        getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID_SYSTEM);
+        if (Build.VERSION.SDK_INT >= 23) { // Android M+
+            getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID_SYSTEM);
+        } else {
+            ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID_SYSTEM);
+        }
     }
 
     private void handleUpdateIcon(ResultReceiver receiver) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_PROGRESS)
-                .setColor(getColor(R.color.colorNotification))
                 .setContentTitle(getString(R.string.notification_fetching_list))
                 .setProgress(100, 0, true)
                 .setOngoing(true)
                 .setShowWhen(true)
                 .setSmallIcon(android.R.drawable.stat_sys_download)
                 .setWhen(System.currentTimeMillis());
-
+        if (Build.VERSION.SDK_INT >= 23) {//Android M+
+            builder = builder.setColor(getColor(R.color.colorNotification));
+        } else {
+            builder = builder.setColor(getResources().getColor(R.color.colorNotification));
+        }
         notificationManager.notify(NOTIFICATION_ID_PROGRESS, builder.build());
 
         OkHttpClient client = new OkHttpClient();
@@ -337,15 +344,24 @@ public class FFMIntentService extends IntentService {
 
     private void handleDownloadQrCode(String url) {
         Profile profile = FFMSettings.getProfile();
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-
+        NotificationManager notificationManager;
+        if (Build.VERSION.SDK_INT >= 23) { // Android M+
+            notificationManager = getSystemService(NotificationManager.class);
+        } else {
+            notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        }
         NotificationCompat.Builder builder = FFMApplication.get(this).getNotificationBuilder().createBuilder(this, null)
                 .setChannelId(NOTIFICATION_CHANNEL_SERVER)
-                .setColor(getColor(R.color.colorServerNotification))
                 .setSmallIcon(R.drawable.ic_noti_download_24dp)
                 .setAutoCancel(true)
                 .setWhen(System.currentTimeMillis())
                 .setShowWhen(true);
+
+        if (Build.VERSION.SDK_INT >= 23) {//Android M+
+            builder = builder.setColor(getColor(R.color.colorNotification));
+        } else {
+            builder = builder.setColor(getResources().getColor(R.color.colorNotification));
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -383,7 +399,6 @@ public class FFMIntentService extends IntentService {
                 }
             } else {
                 DocumentFile pickedDir = FFMSettings.getDownloadDir(this);
-
                 if (pickedDir != null) {
                     DocumentFile newFile = pickedDir.findFile("webqq-qrcode.png");
                     if (newFile != null) {
@@ -396,6 +411,8 @@ public class FFMIntentService extends IntentService {
                 }
             }
         } catch (Exception ignored) {
+            Log.d(TAG, ignored.getMessage());
+            ignored.printStackTrace();
         }
 
 

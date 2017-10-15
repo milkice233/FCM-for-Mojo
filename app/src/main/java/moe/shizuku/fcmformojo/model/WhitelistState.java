@@ -5,6 +5,7 @@ import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -59,8 +60,7 @@ public abstract class WhitelistState<T, W> {
 
             states.add(new Pair<>(item, checked));
         }
-
-        states.sort(new Comparator<Pair<W, Boolean>>() {
+        Collections.sort(states, new Comparator<Pair<W, Boolean>>() {
             @Override
             public int compare(Pair<W, Boolean> o1, Pair<W, Boolean> o2) {
                 return Boolean.compare(o2.second, o1.second);

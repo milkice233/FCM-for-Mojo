@@ -36,7 +36,12 @@ public class ShizukuCompat {
         }
 
         // 就可能是在其他的用户了
-        UserManager userManager = context.getSystemService(UserManager.class);
+        UserManager userManager = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { //Android M+
+            userManager = context.getSystemService(UserManager.class);
+        } else {
+            userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        }
 
         PrivilegedAPIs.setPermitNetworkThreadPolicy();
         PrivilegedAPIs privilegedAPIs = FFMApplication.sPrivilegedAPIs;

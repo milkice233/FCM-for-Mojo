@@ -156,4 +156,5 @@
     <string name="settings_notification_friend_off">关闭</string>
     <string name="settings_notification_group_on">开启</string>
     <string name="settings_notification_group_off">关闭，但 \@ 你的消息将会被当作好友消息处理</string>
+    <string name="select_download_dir">请选择二维码的存放文件夹，推荐默认的Download（下载）文件夹</string>
 </resources>

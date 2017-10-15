@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
@@ -107,7 +108,11 @@ public class ChatIcon {
     public static Bitmap getDefault(Context context, @IntRange(from = 0, to = 6) int color, boolean isGroup) {
         Drawable drawable = context.getDrawable(isGroup ? R.drawable.ic_noti_group_48dp : R.drawable.ic_noti_person_48dp);
         if (drawable != null) {
-            drawable.setTint(context.getColor(COLORS[color]));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // Android M+
+                drawable.setTint(context.getColor(COLORS[color]));
+            } else {
+                drawable.setTint(context.getResources().getColor(COLORS[color]));
+            }
 
             return DrawableUtils.toBitmap(drawable);
         }

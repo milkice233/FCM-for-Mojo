@@ -164,4 +164,5 @@
     <string name="settings_notification_friend_off">Off</string>
     <string name="settings_notification_group_on">On</string>
     <string name="settings_notification_group_off">Off, but messages that \@ you will be treated as friend message</string>
+    <string name="select_download_dir">Please select the directory you want the QRCode to download to.Default download folder is recommended.</string>
 </resources>

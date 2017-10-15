@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.RemoteInput;
 import android.support.v4.provider.DocumentFile;
 
@@ -95,7 +96,6 @@ class NotificationBuilderImplBase extends NotificationBuilderImpl {
                         .setChannelId(NOTIFICATION_CHANNEL_SERVER)
                         .setContentTitle(context.getString(R.string.notification_server_stop))
                         .setContentText(context.getString(R.string.notification_tap_to_restart))
-                        .setColor(context.getColor(R.color.colorServerNotification))
                         .setSmallIcon(R.drawable.ic_noti_24dp)
                         .setWhen(System.currentTimeMillis())
                         .setOngoing(true)
@@ -103,6 +103,12 @@ class NotificationBuilderImplBase extends NotificationBuilderImpl {
                         .setShowWhen(true)
                         .setContentIntent(PendingIntent.getService(context, REQUEST_CODE_RESTART_WEBQQ, FFMIntentService.restartIntent(context), PendingIntent.FLAG_ONE_SHOT))
                         .addAction(R.drawable.ic_noti_dismiss_24dp, context.getString(android.R.string.cancel), PendingIntent.getBroadcast(context, REQUEST_CODE_DISMISS_SYSTEM_NOTIFICATION, FFMBroadcastReceiver.dismissSystemNotificationIntent(), 0));
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {//Android M+
+                    builder = builder.setColor(context.getColor(R.color.colorServerNotification));
+                } else {
+                    builder = builder.setColor(context.getResources().getColor(R.color.colorServerNotification));
+                }
 
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                     builder.setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -205,9 +211,14 @@ class NotificationBuilderImplBase extends NotificationBuilderImpl {
         Profile profile = FFMSettings.getProfile();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_GROUPS)
-                .setColor(context.getColor(profile.getNotificationColor()))
                 .setSmallIcon(profile.getNotificationIcon())
                 .setVisibility(Notification.VISIBILITY_PRIVATE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {//Android M+
+            builder = builder.setColor(context.getColor(R.color.colorServerNotification));
+        } else {
+            builder = builder.setColor(context.getResources().getColor(R.color.colorServerNotification));
+        }
 
         if (FFMApplication.get(context).isSystem()) {
             Bundle extras = new Bundle();
@@ -253,7 +264,11 @@ class NotificationBuilderImplBase extends NotificationBuilderImpl {
             // lights
             if (FFMSettings.getNotificationLight(!isFriend)
                     && priority >= NotificationCompat.PRIORITY_DEFAULT) {
-                builder.setLights(context.getColor(R.color.colorNotification), 1000, 1000);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {//Android M+
+                    builder.setLights(context.getColor(R.color.colorNotification), 1000, 1000);
+                } else {
+                    builder.setLights(context.getResources().getColor(R.color.colorNotification), 1000, 1000);
+                }
             }
         }
 
@@ -267,12 +282,14 @@ class NotificationBuilderImplBase extends NotificationBuilderImpl {
         nb.getNotificationManager().cancel(id);
 
         boolean clearGroup = true;
+        //TODO HELP NEEDED: Get active notifications under SDK 23
+        /*
         for (StatusBarNotification sbn : nb.getNotificationManager().getActiveNotifications()) {
             if (sbn.getId() != NOTIFICATION_ID_SYSTEM
                     && sbn.getId() != NOTIFICATION_ID_GROUP_SUMMARY) {
                 clearGroup = false;
             }
-        }
+        }*/
         if (clearGroup) {
             nb.getNotificationManager().cancel(NOTIFICATION_ID_GROUP_SUMMARY);
         }

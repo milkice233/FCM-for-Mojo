@@ -4,7 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.icu.text.DateFormat;
+//import android.icu.text.DateFormat;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +15,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.Date;
 import java.util.Locale;
+import java.text.DateFormat;
 
 import moe.shizuku.fcmformojo.R;
 import moe.shizuku.fcmformojo.model.RegistrationId;
@@ -62,7 +63,7 @@ public class RegistrationIdViewHolder extends BaseViewHolder<RegistrationId> {
             public void onClick(View view) {
                 final Context context = view.getContext();
                 new AlertDialog.Builder(context)
-                        .setMessage(Html.fromHtml(context.getString(R.string.dialog_token_message, getData().getId()), Html.TO_HTML_PARAGRAPH_LINES_CONSECUTIVE))
+                        .setMessage(Html.fromHtml(context.getString(R.string.dialog_token_message, FirebaseInstanceId.getInstance().getToken())))
                         .setPositiveButton(android.R.string.copy, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

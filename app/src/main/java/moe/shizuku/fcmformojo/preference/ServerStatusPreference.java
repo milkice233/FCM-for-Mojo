@@ -129,13 +129,23 @@ public class ServerStatusPreference extends Preference {
         Context context = getContext();
 
         if (count > 0) {
-            int color = context.getColor(R.color.serverRunning);
+            int color = 0;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { // Android M+
+                color = context.getColor(R.color.serverRunning);
+            } else {
+                color = context.getResources().getColor(R.color.serverRunning);
+            }
             Drawable icon = context.getDrawable(R.drawable.ic_status_ok_24dp);
             String text = context.getResources().getQuantityString(R.plurals.status_running, count, count);
 
             updateStatus(text, color, icon);
         } else {
-            int color = context.getColor(R.color.serverProblem);
+            int color = 0;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { // Android M+
+                color = context.getColor(R.color.serverProblem);
+            } else {
+                color = context.getResources().getColor(R.color.serverProblem);
+            }
             Drawable icon = context.getDrawable(R.drawable.ic_status_error_24dp);
             String text = context.getString(R.string.status_running_no_device);
 
@@ -157,7 +167,12 @@ public class ServerStatusPreference extends Preference {
         } else {
             Context context = getContext();
 
-            int color = context.getColor(R.color.serverProblem);
+            int color = 0;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { // Android M+
+                color = context.getColor(R.color.serverProblem);
+            } else {
+                color = context.getResources().getColor(R.color.serverProblem);
+            }
             Drawable icon = context.getDrawable(R.drawable.ic_status_error_24dp);
             updateStatus(context.getString(R.string.status_webqq_dead), color, icon);
         }
@@ -165,7 +180,12 @@ public class ServerStatusPreference extends Preference {
 
     private void updateStatus(String error) {
         Context context = getContext();
-        int color = context.getColor(R.color.serverError);
+        int color = 0;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) { //Android M+
+            color = context.getColor(R.color.serverError);
+        } else {
+            color = context.getResources().getColor(R.color.serverError);
+        }
         Drawable icon = context.getDrawable(R.drawable.ic_status_error_24dp);
         updateStatus(context.getString(R.string.status_cannot_connect_server_error, error), color, icon);
     }

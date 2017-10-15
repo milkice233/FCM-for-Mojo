@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.RemoteInput;
@@ -138,7 +139,12 @@ public class FFMBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void handleDismissSystemNotification(Context context) {
-        context.getSystemService(NotificationManager.class)
-                .cancel(NOTIFICATION_ID_SYSTEM);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // Android M+
+            context.getSystemService(NotificationManager.class)
+                    .cancel(NOTIFICATION_ID_SYSTEM);
+        } else {
+            ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
+                    .cancel(NOTIFICATION_ID_SYSTEM);
+        }
     }
 }
