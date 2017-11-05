@@ -49,7 +49,7 @@ public class ShizukuCompat {
             userManager = context.getSystemService(UserManager.class);
         } else {
             userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
-	}
+	    }
         if (userManager == null) {
             return false;
         }
@@ -83,7 +83,9 @@ public class ShizukuCompat {
     }
 
     private static boolean safeStartActivity(final String packageName, final Intent intent, final int userId) {
-        if (!Looper.getMainLooper().isCurrentThread()) {
+        //if (!Looper.getMainLooper().isCurrentThread()) {
+        if(Looper.getMainLooper().getThread() != Thread.currentThread()){
+            //TODO: Testing Needed
             return Single.
                     fromCallable(new Callable<Boolean>() {
                         @Override

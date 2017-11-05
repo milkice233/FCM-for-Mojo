@@ -403,7 +403,8 @@ public class FFMIntentService extends IntentService {
 
                     uri = file.getUri();
                     os = getContentResolver().openOutputStream(uri);
-                } else {
+                } /*
+                else {
                     // 退回到运行时权限的情况
                     if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                         File file = FileUtils.getExternalStoragePublicFile(Environment.DIRECTORY_DOWNLOADS, "FFM", "webqq-qrcode.png");
@@ -412,7 +413,8 @@ public class FFMIntentService extends IntentService {
                             os = new FileOutputStream(file);
                         }
                     }
-                }
+                }*/
+                //Nearly Impossible
             }
         } catch (Exception ignored) {
             Log.d(TAG, ignored.getMessage());

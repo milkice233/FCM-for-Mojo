@@ -107,11 +107,6 @@ public class MainActivity extends BaseActivity implements PurchasesUpdatedListen
             Log.wtf("FFM", "can't use Scoped Directory Access", e);
 
             Crashlytics.logException(e);
-
-            // fallback to runtime permission
-            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
-            }
         }
     }
 

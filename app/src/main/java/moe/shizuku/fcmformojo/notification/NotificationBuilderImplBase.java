@@ -90,7 +90,7 @@ class NotificationBuilderImplBase extends NotificationBuilderImpl {
                         if (file != null) {
                             file.delete();
                         }
-                    } else {
+                    } /*else {
                         // 退回到运行时权限的情况
                         if (context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                             File file = FileUtils.getExternalStoragePublicFile(Environment.DIRECTORY_DOWNLOADS, "FFM", "webqq-qrcode.png");
@@ -99,7 +99,8 @@ class NotificationBuilderImplBase extends NotificationBuilderImpl {
                                 file.delete();
                             }
                         }
-                    }
+                    }*/
+                    //Nearly Impossible
                 } catch (Exception ignored) {
                 }
                 return;
