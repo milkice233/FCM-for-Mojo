@@ -4,9 +4,11 @@ import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,11 +17,13 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import moe.shizuku.fcmformojo.FFMApplication;
+import moe.shizuku.ShizukuState;
+import moe.shizuku.api.ShizukuClient;
 import moe.shizuku.fcmformojo.FFMSettings;
 import moe.shizuku.fcmformojo.FFMSettings.ForegroundImpl;
 import moe.shizuku.fcmformojo.R;
@@ -32,7 +36,6 @@ import moe.shizuku.fcmformojo.utils.UsageStatsUtils;
 import moe.shizuku.preference.ListPreference;
 import moe.shizuku.preference.Preference;
 import moe.shizuku.preference.SwitchPreference;
-import moe.shizuku.privileged.api.PrivilegedAPIs;
 
 import static moe.shizuku.fcmformojo.FFMApplication.FFMService;
 
@@ -45,6 +48,8 @@ public class NotificationSettingsFragment extends SettingsFragment {
     private SwitchPreference mFriendToggle;
     private SwitchPreference mGroupToggle;
 
+    private ListPreference mForegroundList;
+
     private NotificationToggle mServerNotificationToggle;
 
     @Override
@@ -55,6 +60,7 @@ public class NotificationSettingsFragment extends SettingsFragment {
 
         mFriendToggle = (SwitchPreference) findPreference("notification");
         mGroupToggle = (SwitchPreference) findPreference("notification_group");
+        mForegroundList = (ListPreference) findPreference("get_foreground");
 
         List<CharSequence> names = new ArrayList<>();
         List<CharSequence> packages = new ArrayList<>();
@@ -236,13 +242,67 @@ public class NotificationSettingsFragment extends SettingsFragment {
                         }
                         break;
                     case ForegroundImpl.SHIZUKU:
-                        PrivilegedAPIs.setPermitNetworkThreadPolicy();
-                        if (!FFMApplication.sPrivilegedAPIs.authorized()) {
-                            FFMApplication.sPrivilegedAPIs.requstAuthorization(getActivity());
+                        if (ShizukuClient.getManagerVersion(getContext()) < 106) {
+                            mForegroundList.setValue(ForegroundImpl.NONE);
+
+                            Toast.makeText(getContext(), "Shizuku version too low", Toast.LENGTH_SHORT).show();
+                            break;
                         }
+
+                        Single.just(ShizukuClient.getState())
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<ShizukuState>() {
+                                    @Override
+                                    public void accept(ShizukuState state) throws Exception {
+                                        if (!isDetached()) {
+                                            return;
+                                        }
+
+                                        if (!ShizukuClient.getState().isAuthorized()) {
+                                            if (!ShizukuClient.checkSelfPermission(getContext())) {
+                                                ShizukuClient.requestPermission(NotificationSettingsFragment.this);
+                                            } else {
+                                                ShizukuClient.requestAuthorization(NotificationSettingsFragment.this);
+                                            }
+                                        }
+                                    }
+                                });
+
                         break;
                 }
                 break;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case ShizukuClient.REQUEST_CODE_PERMISSION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    ShizukuClient.requestAuthorization(this);
+                } else {
+                    // denied
+                    mForegroundList.setValue(ForegroundImpl.NONE);
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case ShizukuClient.REQUEST_CODE_AUTHORIZATION:
+                if (resultCode == ShizukuClient.AUTH_RESULT_OK) {
+                    ShizukuClient.setToken(data);
+                    FFMSettings.putToken(ShizukuClient.getToken());
+                } else {
+                    // error
+                }
+                return;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
         }
     }
 }

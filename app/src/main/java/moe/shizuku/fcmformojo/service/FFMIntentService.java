@@ -1,11 +1,13 @@
 package moe.shizuku.fcmformojo.service;
 
+import android.Manifest;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -76,33 +78,26 @@ public class FFMIntentService extends IntentService {
     }
 
     public static void startUpdateIcon(Context context, @Nullable ResultReceiver receiver) {
-        Intent intent = new Intent(context, FFMIntentService.class);
-        intent.setAction(ACTION_UPDATE_ICON);
-        intent.putExtra(Intent.EXTRA_RESULT_RECEIVER, receiver);
-        context.startService(intent);
+        context.startService(new Intent(context, FFMIntentService.class)
+                .setAction(ACTION_UPDATE_ICON)
+                .putExtra(Intent.EXTRA_RESULT_RECEIVER, receiver));
     }
 
     public static void startReply(Context context, CharSequence content, Chat chat) {
-        Intent intent = new Intent(context, FFMIntentService.class);
-        intent.setAction(ACTION_REPLY);
-        intent.putExtra(EXTRA_CONTENT, content);
-        intent.putExtra(EXTRA_CHAT, chat);
-        context.startService(intent);
+        context.startService(new Intent(context, FFMIntentService.class)
+                .setAction(ACTION_REPLY)
+                .putExtra(EXTRA_CONTENT, content)
+                .putExtra(EXTRA_CHAT, chat));
     }
 
     public static void startDownloadQrCode(Context context, String url) {
-        Intent intent = new Intent(context, FFMIntentService.class);
-        intent.setAction(ACTION_DOWNLOAD_QRCODE);
-        intent.putExtra(EXTRA_URL, url);
-        context.startService(intent);
+        context.startService(new Intent(context, FFMIntentService.class)
+                .setAction(ACTION_DOWNLOAD_QRCODE)
+                .putExtra(EXTRA_URL, url));
     }
 
     public static Intent restartIntent(Context context) {
         return new Intent(context, FFMIntentService.class).setAction(ACTION_RESTART_WEBQQ);
-    }
-
-    public static void startRestart(Context context) {
-        context.startService(restartIntent(context));
     }
 
     @Override
@@ -408,6 +403,15 @@ public class FFMIntentService extends IntentService {
 
                     uri = file.getUri();
                     os = getContentResolver().openOutputStream(uri);
+                } else {
+                    // 退回到运行时权限的情况
+                    if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        File file = FileUtils.getExternalStoragePublicFile(Environment.DIRECTORY_DOWNLOADS, "FFM", "webqq-qrcode.png");
+                        if (file.exists() || file.createNewFile()) {
+                            uri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, file);
+                            os = new FileOutputStream(file);
+                        }
+                    }
                 }
             }
         } catch (Exception ignored) {

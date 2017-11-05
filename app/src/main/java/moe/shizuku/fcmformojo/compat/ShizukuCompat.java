@@ -2,16 +2,24 @@ package moe.shizuku.fcmformojo.compat;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Looper;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.support.annotation.WorkerThread;
 
-import moe.shizuku.fcmformojo.FFMApplication;
-import moe.shizuku.privileged.api.PrivilegedAPIs;
+import java.util.concurrent.Callable;
+
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
+import moe.shizuku.api.ShizukuActivityManagerV26;
+import moe.shizuku.api.ShizukuClient;
+import moe.shizuku.api.ShizukuPackageManagerV26;
 
 /**
  * Created by rikka on 2017/8/22.
  */
 
+@WorkerThread
 public class ShizukuCompat {
 
     /**
@@ -21,7 +29,7 @@ public class ShizukuCompat {
      * @param intent Intent
      * @param packageName 包名
      */
-    public static boolean startActivity(Context context, Intent intent, String packageName) {
+    public static boolean findAndStartActivity(Context context, final Intent intent, final String packageName) {
         // 如果当前用户有就直接打开
         if (intent.resolveActivity(context.getPackageManager()) != null) {
             try {
@@ -41,21 +49,19 @@ public class ShizukuCompat {
             userManager = context.getSystemService(UserManager.class);
         } else {
             userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+	}
+        if (userManager == null) {
+            return false;
         }
 
-        PrivilegedAPIs.setPermitNetworkThreadPolicy();
-        PrivilegedAPIs privilegedAPIs = FFMApplication.sPrivilegedAPIs;
-        if (!privilegedAPIs.authorized()) {
+        if (!ShizukuClient.getState().isAuthorized()) {
             return false;
         }
 
         for (UserHandle userHandle : userManager.getUserProfiles()) {
-            int userId = userHandle.hashCode(); // 就是（
+            final int userId = userHandle.hashCode(); // 就是（
             try {
-                if (privilegedAPIs.getApplicationInfo(packageName, 0, userId) != null) {
-                    privilegedAPIs.startActivity(intent, userId);
-                    return true;
-                }
+                safeStartActivity(packageName, intent, userId);
             } catch (SecurityException e) {
                 //Toast.makeText(context, "Can't start activity because of permission.", Toast.LENGTH_SHORT).show();
                 return false;
@@ -64,5 +70,39 @@ public class ShizukuCompat {
         }
 
         return false;
+    }
+
+    private static boolean startActivity(final String packageName, final Intent intent, final int userId) {
+        if (ShizukuPackageManagerV26.getApplicationInfo(packageName, 0, userId) != null) {
+            ShizukuActivityManagerV26.startActivityAsUser(
+                    null, null, intent, null, null, null, 0, 0, null, null, userId);
+            return true;
+        }
+        return false;
+
+    }
+
+    private static boolean safeStartActivity(final String packageName, final Intent intent, final int userId) {
+        if (!Looper.getMainLooper().isCurrentThread()) {
+            return Single.
+                    fromCallable(new Callable<Boolean>() {
+                        @Override
+                        public Boolean call() throws Exception {
+                            return startActivity(packageName, intent, userId);
+                        }
+                    })
+                    .subscribeOn(Schedulers.io())
+                    .blockingGet();
+        } else {
+            return startActivity(packageName, intent, userId);
+        }
+    }
+
+    public static String getForegroundPackage() {
+        try {
+            return ShizukuActivityManagerV26.getTasks(1, 0).get(0).baseActivity.getPackageName();
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

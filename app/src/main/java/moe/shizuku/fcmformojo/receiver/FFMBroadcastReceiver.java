@@ -118,7 +118,7 @@ public class FFMBroadcastReceiver extends BroadcastReceiver {
             FFMSettings.getProfile().onStartChatActivity(context, null);
         } else {
             FFMApplication.get(context).getNotificationBuilder()
-                        .clearMessages();
+                    .clearMessages();
 
             FFMSettings.getProfile().onStartChatActivity(context, chat);
         }
