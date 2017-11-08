@@ -40,11 +40,4 @@ $client->load(
     }
 );
 
-#Since it's the only method for pushing messages, stability must be guaranteed even if it requires more login requests potentially.
-#Comment below lines if you're coonfident with your network & Tencent
-$client->on(model_update_fail=>sub{
-    $client = shift;
-    $client->relogin();
-});
-
 $client->run();
