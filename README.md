@@ -1,8 +1,10 @@
-# FCM for Mojo
+# FCM for Mojo L
 借助 [Mojo-Webqq](https://github.com/sjdy521/Mojo-Webqq) 实现将 QQ 消息通过 Firebase Cloud Messaging (FCM) 推送至 Android 设备。
 
 ## 特点
-* 专为 Android 7.0 以上设计，充分利用 Android 通知特性（直接回复，捆绑通知等）。
+* ~~专为 Android 7.0 以上设计，充分利用 Android 通知特性（直接回复，捆绑通知等）。~~
+* 本项目在原项目的基础上做了降级适配， Android 5.0 及以上用户均可使用
+* **请注意由于低版本Android不支持通知栏快捷回复，需要配合第三方软件使用，推荐[Floatify](https://play.google.com/store/apps/details?id=com.jamworks.floatify)或[Material Notification Shade](https://play.google.com/store/apps/details?id=com.treydev.mns)，如果是Android 7.0及以上用户请直接使用[原版FFM](https://github.com/RikkaApps/FCM-for-Mojo)**
 * 不同于大部分应用接收推送后只在客户端决定是否通知，FFM 服务端可以根据客户端配置决定是否推送，避免非必要唤醒，花费更少电量。
 * 支持戳通知直接进入对应聊天（仅 QQ、TIM、QQi、QQL，且可能需要 root 运行的 shizuku）。
 
@@ -81,4 +83,4 @@ HTTPS 通过 [https 模块](https://nodejs.org/dist/latest/docs/api/https.html) 
 
 ### 客户端
 
-当服务端配置完成后，[下载客户端](https://github.com/RikkaW/FCM-for-Mojo/releases)并根据应用内提示配置（在管理设备里添加正在使用的设备）即可。
+当服务端配置完成后，[下载客户端](https://github.com/RikkaW/FCM-for-Mojo-L/releases)并根据应用内提示配置（在管理设备里添加正在使用的设备）即可。
