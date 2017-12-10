@@ -43,6 +43,8 @@ import moe.shizuku.fcmformojo.profile.Profile;
 import moe.shizuku.fcmformojo.profile.ProfileHelper;
 import moe.shizuku.fcmformojo.receiver.FFMBroadcastReceiver;
 import moe.shizuku.fcmformojo.utils.FileUtils;
+import moe.shizuku.fcmformojo.utils.URLFormatUtils;
+import moe.shizuku.support.utils.Settings;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
@@ -54,7 +56,6 @@ import static moe.shizuku.fcmformojo.FFMStatic.ACTION_RESTART_WEBQQ;
 import static moe.shizuku.fcmformojo.FFMStatic.ACTION_UPDATE_ICON;
 import static moe.shizuku.fcmformojo.FFMStatic.EXTRA_CHAT;
 import static moe.shizuku.fcmformojo.FFMStatic.EXTRA_CONTENT;
-import static moe.shizuku.fcmformojo.FFMStatic.EXTRA_URL;
 import static moe.shizuku.fcmformojo.FFMStatic.FILE_PROVIDER_AUTHORITY;
 import static moe.shizuku.fcmformojo.FFMStatic.NOTIFICATION_CHANNEL_PROGRESS;
 import static moe.shizuku.fcmformojo.FFMStatic.NOTIFICATION_CHANNEL_SERVER;
@@ -90,10 +91,9 @@ public class FFMIntentService extends IntentService {
                 .putExtra(EXTRA_CHAT, chat));
     }
 
-    public static void startDownloadQrCode(Context context, String url) {
+    public static void startDownloadQrCode(Context context) {
         context.startService(new Intent(context, FFMIntentService.class)
-                .setAction(ACTION_DOWNLOAD_QRCODE)
-                .putExtra(EXTRA_URL, url));
+                .setAction(ACTION_DOWNLOAD_QRCODE));
     }
 
     public static Intent restartIntent(Context context) {
@@ -114,8 +114,7 @@ public class FFMIntentService extends IntentService {
             Chat chat = intent.getParcelableExtra(EXTRA_CHAT);
             handleReply(content, chat);
         } else if (ACTION_DOWNLOAD_QRCODE.equals(action)) {
-            String url = intent.getStringExtra(EXTRA_URL);
-            handleDownloadQrCode(url);
+            handleDownloadQrCode();
         } else if (ACTION_RESTART_WEBQQ.equals(action)) {
             handleRestart();
         }
@@ -337,7 +336,8 @@ public class FFMIntentService extends IntentService {
         nb.clearMessages(chat.getUniqueId());
     }
 
-    private void handleDownloadQrCode(String url) {
+    private void handleDownloadQrCode() {
+        String url = URLFormatUtils.addEndSlash(FFMSettings.getBaseUrl()) + "ffm/get_qr_code";
         Profile profile = FFMSettings.getProfile();
         NotificationManager notificationManager;
         if (Build.VERSION.SDK_INT >= 23) { // Android M+
@@ -365,12 +365,22 @@ public class FFMIntentService extends IntentService {
 
         NotificationCompat.Action action;
 
-        Intent intent = new Intent(Intent.ACTION_VIEW).setData(Uri.parse(url));
+        Uri authUri = Uri.parse(url);
+
+        String username = Settings.getString(FFMSettings.SERVER_HTTP_USERNAME, null);
+        String password = Settings.getString(FFMSettings.SERVER_HTTP_PASSWORD, null);
+
+        if (username != null && username.length() > 0
+                || password != null && password.length() > 0) {
+            authUri = authUri.buildUpon().encodedAuthority(String.format("%1$s:%2$s@%3$s", username, password, authUri.getAuthority())).build();
+        }
+
+        Intent intent = new Intent(Intent.ACTION_VIEW).setData(authUri);
         PendingIntent viewIntent = PendingIntent
                 .getActivity(this, REQUEST_CODE_OPEN_URI, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         PendingIntent copyIntent = PendingIntent
-                .getBroadcast(this, REQUEST_CODE_COPY, FFMBroadcastReceiver.copyToClipboardIntent(url), PendingIntent.FLAG_UPDATE_CURRENT);
+                .getBroadcast(this, REQUEST_CODE_COPY, FFMBroadcastReceiver.copyToClipboardIntent(authUri.toString()), PendingIntent.FLAG_UPDATE_CURRENT);
 
         if (intent.resolveActivity(getPackageManager()) != null) {
             action = new NotificationCompat.Action.Builder(R.drawable.ic_noti_open_24dp, getString(R.string.notification_action_open_in_browser), viewIntent)
@@ -427,7 +437,7 @@ public class FFMIntentService extends IntentService {
                     .setContentText(getString(R.string.notification_permission_issue))
                     .addAction(action);
         } else {
-            OkHttpClient client = new OkHttpClient();
+            OkHttpClient client = FFMApplication.getOkHttpClient();
 
             if (save(client, url, os, false)) {
                 builder.setContentTitle(getString(R.string.notification_qr_code_downloaded))

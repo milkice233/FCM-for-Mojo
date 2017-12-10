@@ -1,15 +1,21 @@
 package moe.shizuku.fcmformojo;
 
 import android.app.Application;
+import android.app.TaskStackListener;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
+import android.os.RemoteException;
+import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 
 import io.fabric.sdk.android.Fabric;
+import moe.shizuku.api.ShizukuActivityManagerV26;
 import moe.shizuku.api.ShizukuClient;
 import moe.shizuku.fcmformojo.FFMSettings.ForegroundImpl;
 import moe.shizuku.fcmformojo.api.FFMService;
@@ -32,6 +38,7 @@ public class FFMApplication extends Application {
 
     private static NotificationBuilder sNotificationBuilder;
     private static Retrofit sRxRetrofit;
+    private static OkHttpClient sOkHttpClient;
 
     public static OpenQQService OpenQQService;
     public static FFMService FFMService;
@@ -39,6 +46,7 @@ public class FFMApplication extends Application {
     private Handler mMainHandler;
 
     private boolean mIsSystem;
+    private TaskStackListener mTaskStackListener;
 
     public static FFMApplication get(Context context) {
         return (FFMApplication) context.getApplicationContext();
@@ -55,6 +63,19 @@ public class FFMApplication extends Application {
         createServices(sRxRetrofit);
     }
 
+    private static void createOkHttpClient() {
+        sOkHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new HttpBasicAuthorizationInterceptor())
+                .build();
+    }
+
+    public static OkHttpClient getOkHttpClient() {
+        if (sOkHttpClient == null) {
+            createOkHttpClient();
+        }
+        return sOkHttpClient;
+    }
+
     private static void createRetrofit(String baseUrl) {
         if (!URLFormatUtils.isValidURL(baseUrl)) {
             baseUrl = "http://0.0.0.0/";
@@ -62,9 +83,7 @@ public class FFMApplication extends Application {
 
         baseUrl = URLFormatUtils.addEndSlash(baseUrl);
 
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .addInterceptor(new HttpBasicAuthorizationInterceptor())
-                .build();
+        OkHttpClient okHttpClient = getOkHttpClient();
 
         sRxRetrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -90,13 +109,22 @@ public class FFMApplication extends Application {
 
     private static void initShizuku(final Context context) {
         // not installed, version too low, no permission
-        if (ShizukuClient.getManagerVersion(context) < 106
-                || !ShizukuClient.checkSelfPermission(context)) {
+        if (FFMSettings.getForegroundImpl().equals(ForegroundImpl.SHIZUKU)
+                && (ShizukuClient.getManagerVersion(context) < 106 || !ShizukuClient.checkSelfPermission(context))) {
             FFMSettings.putForegroundImpl(ForegroundImpl.NONE);
             return;
         }
 
         ShizukuClient.initialize(context);
+
+        if (FFMSettings.getForegroundImpl().equals(ForegroundImpl.SHIZUKU)) {
+            AsyncTask.execute(new Runnable() {
+                @Override
+                public void run() {
+                    FFMApplication.get(context).registerTaskStackListener();
+                }
+            });
+        }
     }
 
     private static void initCrashReport(Context context) {
@@ -157,5 +185,49 @@ public class FFMApplication extends Application {
 
     public boolean isSystem() {
         return mIsSystem;
+    }
+
+    public void registerTaskStackListener() {
+        if (mTaskStackListener != null) {
+            return;
+        }
+
+        ShizukuClient.setContext(this);
+        if (ShizukuClient.getState().isAuthorized()) {
+            final Context context = this;
+
+            if (Build.VERSION.SDK_INT >= 26) {
+                mTaskStackListener = new TaskStackListener() {
+
+                    @Override
+                    public void onTaskStackChanged() throws RemoteException {
+                        final String pkg = ShizukuActivityManagerV26.getTasks(1, 0).get(0).topActivity.getPackageName();
+
+                        //Log.d("FFM", "Foreground: " + pkg);
+                        if (FFMSettings.getProfile().getPackageName().equals(pkg)) {
+                            FFMSettings.getProfile().getPackageName();
+                            FFMApplication.get(context).getNotificationBuilder()
+                                    .clearMessages();
+
+                            Log.i("FFM", "Foreground is selected QQ, clear notification.");
+                        }
+                    }
+                };
+
+                ShizukuActivityManagerV26.registerTaskStackListener(mTaskStackListener);
+            }
+        }
+    }
+
+    public void unregisterTaskStackListener() {
+        if (mTaskStackListener == null) {
+            return;
+        }
+
+        if (ShizukuClient.getState().isAuthorized()) {
+            ShizukuActivityManagerV26.unregisterTaskStackListener(mTaskStackListener);
+
+            mTaskStackListener = null;
+        }
     }
 }

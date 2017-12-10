@@ -20,30 +20,44 @@
 
 Mojo-Webqq：直接根据[官方教程](https://github.com/sjdy521/Mojo-Webqq#安装方法)即可
 
-Node.js：自己[编译安装](https://raw.githubusercontent.com/RikkaApps/FCM-for-Mojo/master/README.md)，
-或者直接[使用包管理器](https://nodejs.org/en/download/package-manager)
+Node.js：直接[使用包管理器](https://nodejs.org/en/download/package-manager)，
+或者自己[编译安装](https://github.com/nodejs/node/blob/master/BUILDING.md#building-nodejs-on-supported-platforms)
 
-##### 下载（或更新）服务端
+git：使用包管理器 [安装 git](https://git-scm.com/download/linux)
 
-需要自行把 <server.zip> 替换为 [latest release](https://github.com/RikkaW/FCM-for-Mojo/releases/latest) 中的 server.zip 的地址
+##### 下载服务端
+
+执行下面几条命令来下载服务端并安装所需的 node 依赖。
 
 ```Shell
-mkdir ffm && cd ffm
-wget <server.zip>
-unzip server.zip && cd node
-npm install && cd ..
+git clone https://github.com/RikkaApps/FCM-for-Mojo-Server.git
+cd FCM-for-Mojo-Server
+cp config.example.js config.js
+npm install
 ```
+
+##### 更新服务端
+
+首先使用 `Ctrl+C` 关闭正在运行的 FFM ，然后执行下面这两行命令更新服务端并更新所需的 node 依赖。
+
+```Shell
+git pull
+npm install
+```
+
+再次 [运行](#%E8%BF%90%E8%A1%8C) 即可
 
 ##### 运行
 
-为避免错过二维码扫描通知而不知所措，建议在运行前先完成客户端配置的一部分（填写好服务器 URL）。
+> 为避免错过二维码扫描通知而不知所措，建议在运行前先完成客户端配置的一部分（填写好服务器 URL）。
 
 ```Shell
-node node/index.js
+npm start
 ```
+
 #### 选项 2：Docker 快速部署
 
-参阅[这里](DOCKER.md)
+参阅[这里](https://github.com/RikkaApps/FCM-for-Mojo-Server/DOCKER.md)
 
 #### 安全性（可选）
 

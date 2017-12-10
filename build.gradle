@@ -30,9 +30,9 @@ task clean(type: Delete) {
 ext {
     supportLibraryVersion = '26.1.0'
     minSdkVersion = 21
-    preferenceLibraryVersion = '2.0.8'
-    shizukuPrivilegeBaseApiVersion = '8'
-    shizukuPrivilegeApiVersion = '3'
+    preferenceLibraryVersion = '2.2.2'
+    shizukuPrivilegeBaseApiVersion = '9'
+    shizukuPrivilegeApiVersion = '4'
     targetSdkVersion = 26
     buildToolsVersion = "26.0.2"
 }
