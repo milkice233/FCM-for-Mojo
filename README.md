@@ -30,8 +30,8 @@ git：使用包管理器 [安装 git](https://git-scm.com/download/linux)
 执行下面几条命令来下载服务端并安装所需的 node 依赖。
 
 ```Shell
-git clone https://github.com/RikkaApps/FCM-for-Mojo-Server.git
-cd FCM-for-Mojo-Server
+git clone https://github.com/milkice233/FCM-for-Mojo-L-Server.git
+cd FCM-for-Mojo-L-Server
 cp config.example.js config.js
 npm install
 ```
@@ -57,7 +57,7 @@ npm start
 
 #### 选项 2：Docker 快速部署
 
-参阅[这里](https://github.com/RikkaApps/FCM-for-Mojo-Server/DOCKER.md)
+参阅[这里](https://github.com/milkice233/FCM-for-Mojo-L-Server/DOCKER.md)
 
 #### 安全性（可选）
 
@@ -97,4 +97,4 @@ HTTPS 通过 [https 模块](https://nodejs.org/dist/latest/docs/api/https.html) 
 
 ### 客户端
 
-当服务端配置完成后，[下载客户端](https://github.com/RikkaW/FCM-for-Mojo-L/releases)并根据应用内提示配置（在管理设备里添加正在使用的设备）即可。
+当服务端配置完成后，[下载客户端](https://github.com/milkice233/FCM-for-Mojo-L/releases)并根据应用内提示配置（在管理设备里添加正在使用的设备）即可。
