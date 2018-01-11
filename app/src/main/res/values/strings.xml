@@ -78,7 +78,7 @@
     <string name="notification_qr_code_downloaded">QR code downloaded</string>
     <string name="notification_cannot_download">Can\'t download QR code</string>
     <string name="notification_tap_open_qq">Tap to open %s to scan the QR code.</string>
-    <string name="notification_network_issue">A network issue may have occured.</string>
+    <string name="notification_network_issue">A network issue may have occurred.</string>
     <string name="notification_permission_issue">Required permissions may not be granted.</string>
     <string name="notification_singing_in">Signing in…</string>
     <string name="notification_tap_open_qr_code_in_browser">Tap to open QR code in browser.</string>
@@ -121,7 +121,7 @@
     <string name="status_waiting_refresh">Waiting for refresh…</string>
     <string name="status_cannot_connect_server_error">Can\'t connect to server: %s.</string>
     <string name="status_token_changed">Token may have changed, you may need to add this device and upload settings again in Manage Devices.</string>
-    <string name="restart_webqq_summary">Restart Mojo-Webqq on server (if not running)</string>
+    <string name="restart_webqq_summary">Restart Mojo-Webqq on server</string>
     <string name="action_donate">Donate</string>
     <string name="dialog_donate_title">Pay Rikka NOW ////</string>
     <string name="dialog_donate_message">Rikka have spent a lot time on this project, so Rikka should be paid. (Alipay only)</string>
@@ -166,5 +166,10 @@
     <string name="settings_notification_friend_off">Off</string>
     <string name="settings_notification_group_on">On</string>
     <string name="settings_notification_group_off">Off, but messages that \@ you will be treated as friend message</string>
+
     <string name="select_download_dir">Please select the directory you want the QRCode to download to.Default download folder is recommended.</string>
+
+    <string name="qq_password">QQ password</string>
+    <string name="qq_password_summary">Due to Tencent\'s restrictions, access uid need QQ password for authorization.\nMojo-Webqq needs to be restarted to take effect.</string>
+
 </resources>
