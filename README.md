@@ -57,11 +57,7 @@ npm start
 
 #### 选项 2：Docker 快速部署
 
-<<<<<<< HEAD
-参阅[这里](https://github.com/milkice233/FCM-for-Mojo-L-Server/DOCKER.md)
-=======
 参阅[这里](https://github.com/RikkaApps/FCM-for-Mojo-Server/blob/master/DOCKER.md)
->>>>>>> upstream/master
 
 #### 安全性（可选）
 
